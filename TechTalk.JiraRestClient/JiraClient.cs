@@ -42,6 +42,30 @@ namespace TechTalk.JiraRestClient
         }
 
 
+        public Issue GetIssue(String issueKey)
+        {
+            var jql = String.Format("issue/{0}", Uri.EscapeUriString(issueKey));
+            var path = String.Format("{0}?&fields&expand", jql);
+            var request = CreateRequest(Method.GET, path);
+
+            var response = client.Execute(request);
+            AssertStatus(response, HttpStatusCode.OK);
+
+            var issueData = deserializer.Deserialize<Issue<IssueFields>>(response);
+            Issue issue = Issue.From(issueData);
+
+            jql = String.Format("issue/{0}/worklog?&fields&expand", Uri.EscapeUriString(issueKey));
+            request = CreateRequest(Method.GET, jql);
+            
+            response = client.Execute(request);
+            AssertStatus(response, HttpStatusCode.OK);
+
+            var workData = deserializer.Deserialize<List<Worklog>>(response);
+            issue.fields.worklog = workData;
+
+            return issue;
+        }
+
         public IEnumerable<Issue<TIssueFields>> GetIssues(String projectKey)
         {
             return EnumerateIssues(projectKey, null).ToArray();
