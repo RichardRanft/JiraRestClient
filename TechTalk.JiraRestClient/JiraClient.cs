@@ -54,7 +54,7 @@ namespace TechTalk.JiraRestClient
             var issueData = deserializer.Deserialize<Issue<IssueFields>>(response);
             Issue issue = Issue.From(issueData);
 
-            jql = String.Format("issue/{0}/worklog?&fields&expand", Uri.EscapeUriString(issueKey));
+            jql = String.Format("issue/{0}/worklog/10000?&fields&expand", Uri.EscapeUriString(issueKey));
             request = CreateRequest(Method.GET, jql);
             
             response = client.Execute(request);
