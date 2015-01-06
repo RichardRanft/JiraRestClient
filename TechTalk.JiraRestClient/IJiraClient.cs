@@ -12,6 +12,10 @@ namespace TechTalk.JiraRestClient
         IEnumerable<Issue<TIssueFields>> GetIssues(String projectKey, String issueType);
         /// <summary>Returns a specific issue</summary>
         Issue GetIssue(String issueKey);
+        /// <summary>Returns the worklog count for a specific issue</summary>
+        int GetWorklogCount(String issueKey);
+        /// <summary>Returns the worklogs for a specific issue</summary>
+        Worklog GetWorklog(String issueKey, int startAt = 0, int queryCount = 20);
         /// <summary>Enumerates through all issues for the given project</summary>
         IEnumerable<Issue<TIssueFields>> EnumerateIssues(String projectKey);
         /// <summary>Enumerates through all issues of the specified type for the given project</summary>

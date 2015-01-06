@@ -66,6 +66,32 @@ namespace TechTalk.JiraRestClient
             return issue;
         }
 
+        public int GetWorklogCount(String issueKey)
+        {
+            var jql = String.Format("issue/{0}/worklog?search?&startAt={1}&maxResults={2}&fields&expand", Uri.EscapeUriString(issueKey), 0, 1);
+            var request = CreateRequest(Method.GET, jql);
+
+            var response = client.Execute(request);
+            AssertStatus(response, HttpStatusCode.OK);
+
+            var workData = deserializer.Deserialize<Worklog>(response);
+
+            return workData.total;
+        }
+
+        public Worklog GetWorklog(String issueKey, int startAt = 0, int queryCount = 20)
+        {
+            var jql = String.Format("issue/{0}/worklog?search?&startAt={1}&maxResults={2}&fields&expand", Uri.EscapeUriString(issueKey), startAt, queryCount);
+            var request = CreateRequest(Method.GET, jql);
+
+            var response = client.Execute(request);
+            AssertStatus(response, HttpStatusCode.OK);
+
+            var workData = deserializer.Deserialize<Worklog>(response);
+
+            return workData;
+        }
+
         public IEnumerable<Issue<TIssueFields>> GetIssues(String projectKey)
         {
             return EnumerateIssues(projectKey, null).ToArray();
