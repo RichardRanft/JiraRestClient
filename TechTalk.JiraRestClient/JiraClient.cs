@@ -60,8 +60,8 @@ namespace TechTalk.JiraRestClient
             response = client.Execute(request);
             AssertStatus(response, HttpStatusCode.OK);
 
-            var workData = deserializer.Deserialize<WorklogContainer<TWorklogFields>>(response);
-            issue.fields.worklog = workData.Worklogs;
+            var workData = deserializer.Deserialize<Worklog>(response);
+            issue.fields.worklog = workData;
 
             return issue;
         }
