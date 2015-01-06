@@ -7,7 +7,7 @@
         <authors>TechTalk</authors>
         <owners></owners>
         <description>A simple client for Atlassian JIRA service REST API</description>
-        <releaseNotes></releaseNotes>
+        <releaseNotes>2.3.2 Released 5 Jan 2015 - SRES added functionality to support collection of work log data from JIRA</releaseNotes>
         <summary></summary>
         <language>en-US</language>
         <projectUrl>https://github.com/techtalk/JiraRestClient</projectUrl>

@@ -11,6 +11,10 @@ namespace TechTalk.JiraRestClient
         public int maxResults { get; set; }
         //public string worklogs { get; set; }
         public List<WorklogEntry> worklogs { get; set; }
+        public IEnumerator<WorklogEntry> GetEnumerator()
+        {
+            return worklogs.GetEnumerator();
+        }
     }
 
     public class WorklogEntry
