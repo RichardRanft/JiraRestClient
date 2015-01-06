@@ -4,16 +4,26 @@ using System.Globalization;
 
 namespace TechTalk.JiraRestClient
 {
-    public class Worklog
+    //public class 
+    //{
+    //    public int total { get; set; }
+    //    public int startAt { get; set; }
+    //    public int maxResults { get; set; }
+    //    public List<WorklogEntry> worklogs { get; set; }
+    //    public IEnumerator<WorklogEntry> GetEnumerator()
+    //    {
+    //        return worklogs.GetEnumerator();
+    //    }
+    //}
+    public class Worklog<TWorklogFields> : WorklogRef where TWorklogFields : WorklogFields, new()
     {
-        public int total { get; set; }
-        public int startAt { get; set; }
-        public int maxResults { get; set; }
-        public List<WorklogEntry> worklogs { get; set; }
-        public IEnumerator<WorklogEntry> GetEnumerator()
-        {
-            return worklogs.GetEnumerator();
-        }
+        public Worklog() { fields = new TWorklogFields(); }
+
+        public string expand { get; set; }
+
+        public string self { get; set; }
+
+        public TWorklogFields fields { get; set; }
     }
 
     public class WorklogEntry
