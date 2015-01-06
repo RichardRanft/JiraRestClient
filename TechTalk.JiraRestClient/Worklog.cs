@@ -9,7 +9,6 @@ namespace TechTalk.JiraRestClient
         public int total { get; set; }
         public int startAt { get; set; }
         public int maxResults { get; set; }
-        //public string worklogs { get; set; }
         public List<WorklogEntry> worklogs { get; set; }
         public IEnumerator<WorklogEntry> GetEnumerator()
         {
