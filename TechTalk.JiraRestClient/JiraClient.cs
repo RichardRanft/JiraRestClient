@@ -42,6 +42,21 @@ namespace TechTalk.JiraRestClient
         }
 
 
+        public ProjectList GetProjects()
+        {
+            var jql = String.Format("project");
+            var path = String.Format("{0}?&fields&expand", jql);
+            var request = CreateRequest(Method.GET, path);
+
+            var response = client.Execute(request);
+            AssertStatus(response, HttpStatusCode.OK);
+
+            var projectData = deserializer.Deserialize<List<Project>>(response);
+            ProjectList list = new ProjectList();
+            list.projects = projectData;
+            return list;
+        }
+
         public Issue GetIssue(String issueKey)
         {
             var jql = String.Format("issue/{0}", Uri.EscapeUriString(issueKey));

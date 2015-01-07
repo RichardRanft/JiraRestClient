@@ -7,6 +7,9 @@ namespace TechTalk.JiraRestClient
 {
     public interface IJiraClient
     {
+        /// <summary>Returns all projects that the user can see</summary>
+        ProjectList GetProjects();
+
         /// <summary>Returns all issues for the given project</summary>
         IEnumerable<Issue> GetIssues(String projectKey);
         /// <summary>Returns all issues of the specified type for the given project</summary>
@@ -98,6 +101,11 @@ namespace TechTalk.JiraRestClient
         public IEnumerable<Issue> GetIssues(String projectKey, String issueType)
         {
             return client.GetIssues(projectKey, issueType).Select(Issue.From).ToArray();
+        }
+
+        public ProjectList GetProjects()
+        {
+            return client.GetProjects();
         }
 
         public Issue GetIssue(String issueKey)
