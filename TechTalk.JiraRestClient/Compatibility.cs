@@ -160,6 +160,11 @@ namespace TechTalk.JiraRestClient
             return Issue.From(client.CreateIssue(projectKey, issueType, issueFields));
         }
 
+        public Issue CreateIssue(String projectKey, String issueType, Issue issue)
+        {
+            return Issue.From(client.CreateIssue(projectKey, issueType, issue));
+        }
+
         public Issue UpdateIssue(Issue issue)
         {
             return Issue.From(client.UpdateIssue(issue));

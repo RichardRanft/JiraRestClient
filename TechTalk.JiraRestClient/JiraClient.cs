@@ -7,6 +7,7 @@ using System.Net;
 using System.Text;
 using RestSharp;
 using RestSharp.Deserializers;
+using RestSharp.Serializers;
 
 namespace TechTalk.JiraRestClient
 {
@@ -18,12 +19,16 @@ namespace TechTalk.JiraRestClient
         private readonly string password;
         private readonly RestClient client;
         private readonly JsonDeserializer deserializer;
+        private readonly JsonSerializer serializer;
+
         public JiraClient(string baseUrl, string username, string password)
         {
             this.username = username;
             this.password = password;
             deserializer = new JsonDeserializer();
-            client = new RestClient { BaseUrl = baseUrl + (baseUrl.EndsWith("/") ? "" : "/") + "rest/api/2/" };
+            serializer = new JsonSerializer();
+            //client = new RestClient { BaseUrl = baseUrl + (baseUrl.EndsWith("/") ? "" : "/") + "rest/api/2/" };
+            client = new RestClient(baseUrl + (baseUrl.EndsWith("/") ? "" : "/") + "rest/api/2/");
         }
 
         private RestRequest CreateRequest(Method method, String path)
@@ -249,6 +254,27 @@ namespace TechTalk.JiraRestClient
                 }
 
                 request.AddBody(new { fields = issueData });
+
+                var response = client.Execute(request);
+                AssertStatus(response, HttpStatusCode.Created);
+
+                var issueRef = deserializer.Deserialize<IssueRef>(response);
+                return LoadIssue(issueRef);
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceError("CreateIssue(projectKey, typeCode) error: {0}", ex);
+                throw new JiraClientException("Could not create issue", ex);
+            }
+        }
+
+        public Issue<TIssueFields> CreateIssue(String projectKey, String issueType, Issue issue)
+        {
+            try
+            {
+                var request = CreateRequest(Method.POST, "issue");
+                request.AddHeader("ContentType", "application/json");
+                request.AddBody(serializer.Serialize(issue));
 
                 var response = client.Execute(request);
                 AssertStatus(response, HttpStatusCode.Created);
