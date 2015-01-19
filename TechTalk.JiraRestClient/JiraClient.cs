@@ -81,6 +81,29 @@ namespace TechTalk.JiraRestClient
             return issue;
         }
 
+        public Worklog CreateWorklog(String issueKey, Worklog worklog)
+        {
+            try
+            {
+                var path = String.Format("issue/{0}/worklog", issueKey);
+                var request = CreateRequest(Method.POST, path);
+                request.AddHeader("ContentType", "application/json");
+                RestSharp.Serializers.JsonSerializer serializer = new RestSharp.Serializers.JsonSerializer();
+                String logString = serializer.Serialize(worklog);
+                request.AddBody(new Comment { body = logString });
+
+                var response = client.Execute(request);
+                AssertStatus(response, HttpStatusCode.Created);
+
+                return deserializer.Deserialize<Worklog>(response);
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceError("CreateComment(issue, comment) error: {0}", ex);
+                throw new JiraClientException("Could not create comment", ex);
+            }
+        }
+
         public int GetWorklogCount(String issueKey)
         {
             var jql = String.Format("issue/{0}/worklog?search?&startAt={1}&maxResults={2}&fields&expand", Uri.EscapeUriString(issueKey), 0, 1);
