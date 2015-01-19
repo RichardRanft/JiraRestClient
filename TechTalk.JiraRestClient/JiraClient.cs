@@ -27,7 +27,6 @@ namespace TechTalk.JiraRestClient
             this.password = password;
             deserializer = new JsonDeserializer();
             serializer = new JsonSerializer();
-            //client = new RestClient { BaseUrl = baseUrl + (baseUrl.EndsWith("/") ? "" : "/") + "rest/api/2/" };
             client = new RestClient(baseUrl + (baseUrl.EndsWith("/") ? "" : "/") + "rest/api/2/");
         }
 
