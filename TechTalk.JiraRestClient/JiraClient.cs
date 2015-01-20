@@ -87,25 +87,46 @@ namespace TechTalk.JiraRestClient
 
         public Worklog CreateWorklog(String issueKey, Worklog worklog)
         {
-            try
+            IRestResponse response = null;
+            Worklog responseLog = new Worklog();
+            foreach (WorklogEntry entry in worklog.worklogs)
             {
-                var path = String.Format("issue/{0}/worklog", issueKey);
-                var request = CreateRequest(Method.POST, path);
-                request.AddHeader("ContentType", "application/json");
-                RestSharp.Serializers.JsonSerializer serializer = new RestSharp.Serializers.JsonSerializer();
-                String logString = serializer.Serialize(worklog);
-                request.AddBody(new Comment { body = logString });
+                var userData = new Dictionary<string, object>();
+                var workData = new Dictionary<string, object>();
+                if (entry.timeSpent != null)
+                    workData.Add("timeSpent", entry.timeSpent);
+                if(entry.author != null)
+                {
+                    if (entry.author.name != null)
+                        userData.Add("name", entry.author.name);
 
-                var response = client.Execute(request);
-                AssertStatus(response, HttpStatusCode.Created);
+                    userData.Add("active", entry.author.active);
+                    workData.Add("author", userData);
+                }
+                if (entry.comment != null)
+                    workData.Add("comment", entry.comment);
+                try
+                {
+                    var path = String.Format("issue/{0}/worklog", issueKey);
+                    var request = CreateRequest(Method.POST, path);
+                    request.AddHeader("ContentType", "application/json");
+                    request.AddBody(workData);
 
-                return deserializer.Deserialize<Worklog>(response);
+                    response = client.Execute(request);
+                    AssertStatus(response, HttpStatusCode.Created);
+
+                    responseLog.worklogs.Add(deserializer.Deserialize<WorklogEntry>(response));
+                }
+                catch (Exception ex)
+                {
+                    Trace.TraceError("CreateWorklog(issue, worklog) error: {0}", ex);
+                    String resp = "";
+                    if (response != null)
+                        resp = response.Content;
+                    throw new JiraClientException("Could not create worklog:" + resp, ex);
+                }
             }
-            catch (Exception ex)
-            {
-                Trace.TraceError("CreateComment(issue, comment) error: {0}", ex);
-                throw new JiraClientException("Could not create comment", ex);
-            }
+            return responseLog;
         }
 
         public int GetWorklogCount(String issueKey)
@@ -242,8 +263,6 @@ namespace TechTalk.JiraRestClient
                     issueData.Add("description", issueFields.description);
                 if (issueFields.labels != null)
                     issueData.Add("labels", issueFields.labels);
-                if (issueFields.timetracking != null)
-                    issueData.Add("timetracking", new { originalEstimate = issueFields.timetracking.originalEstimate });
 
                 var propertyList = typeof(TIssueFields).GetProperties().Where(p => p.Name.StartsWith("customfield_"));
                 foreach (var property in propertyList)
@@ -269,13 +288,14 @@ namespace TechTalk.JiraRestClient
 
         public Issue<TIssueFields> CreateIssue(String projectKey, String issueType, Issue issue)
         {
+            IRestResponse response = null;
             try
             {
                 var request = CreateRequest(Method.POST, "issue");
                 request.AddHeader("ContentType", "application/json");
                 request.AddBody(serializer.Serialize(issue));
 
-                var response = client.Execute(request);
+                response = client.Execute(request);
                 AssertStatus(response, HttpStatusCode.Created);
 
                 var issueRef = deserializer.Deserialize<IssueRef>(response);
@@ -284,7 +304,32 @@ namespace TechTalk.JiraRestClient
             catch (Exception ex)
             {
                 Trace.TraceError("CreateIssue(projectKey, typeCode) error: {0}", ex);
-                throw new JiraClientException("Could not create issue", ex);
+                String resp = "";
+                if(response != null)
+                    resp = response.Content;
+                throw new JiraClientException("Could not create issue:" + resp, ex);
+            }
+        }
+
+        public Issue ProgressWorkflowAction(String issueKey, String action)
+        {
+            try
+            {
+                var path = String.Format("workflow/{0}/transitions", issueKey);
+                var request = CreateRequest(Method.POST, path);
+                request.AddHeader("ContentType", "application/json");
+
+                request.AddBody(new { name = action });
+
+                var response = client.Execute(request);
+                AssertStatus(response, HttpStatusCode.NoContent);
+
+                return GetIssue(issueKey);
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceError("UpdateIssue(issue) error: {0}", ex);
+                throw new JiraClientException("Could not update issue", ex);
             }
         }
 
