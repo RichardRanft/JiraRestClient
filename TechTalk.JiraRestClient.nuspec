@@ -2,12 +2,12 @@
 <package>
     <metadata>
         <id>TechTalk.JiraRestClient</id>
-        <version>2.3.3.2</version>
+        <version>2.3.3.3</version>
         <title>JIRA REST Client</title>
         <authors>TechTalk</authors>
         <owners></owners>
         <description>A simple client for Atlassian JIRA service REST API</description>
-        <releaseNotes>2.3.3.2 Released 20 Jan 2015 - Work on adding worklogs to issues.</releaseNotes>
+        <releaseNotes>2.3.3.2 Released 21 Jan 2015 - Change issue status and priority.</releaseNotes>
         <summary></summary>
         <language>en-US</language>
         <projectUrl>https://github.com/techtalk/JiraRestClient</projectUrl>
