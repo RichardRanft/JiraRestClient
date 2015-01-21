@@ -291,7 +291,7 @@ namespace TechTalk.JiraRestClient
             }
             catch (Exception ex)
             {
-                Trace.TraceError("CreateIssue(projectKey, typeCode) error: {0}", ex);
+                Trace.TraceError("CreateIssue(projectKey, issueType, issueFields) error: {0}", ex);
                 throw new JiraClientException("Could not create issue", ex);
             }
         }
@@ -313,7 +313,7 @@ namespace TechTalk.JiraRestClient
             }
             catch (Exception ex)
             {
-                Trace.TraceError("CreateIssue(projectKey, typeCode) error: {0}", ex);
+                Trace.TraceError("CreateIssue(projectKey, issueType, issue) error: {0}", ex);
                 String resp = "";
                 if(response != null)
                     resp = response.Content;
@@ -344,7 +344,7 @@ namespace TechTalk.JiraRestClient
             }
             catch (Exception ex)
             {
-                Trace.TraceError("UpdateIssue(issue) error: {0}", ex);
+                Trace.TraceError("ProgressWorkflowAction(issueKey, action, actionID) error: {0}", ex);
                 throw new JiraClientException("Could not update issue", ex);
             }
         }
