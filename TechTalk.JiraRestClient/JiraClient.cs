@@ -311,15 +311,21 @@ namespace TechTalk.JiraRestClient
             }
         }
 
-        public Issue ProgressWorkflowAction(String issueKey, String action)
+        public Issue ProgressWorkflowAction(String issueKey, String action, String actionID)
         {
             try
             {
-                var path = String.Format("workflow/{0}/transitions", issueKey);
+                var path = String.Format("issue/{0}/transitions", issueKey);
                 var request = CreateRequest(Method.POST, path);
                 request.AddHeader("ContentType", "application/json");
-
-                request.AddBody(new { name = action });
+                var trans = new Dictionary<String, object>();
+                trans.Add("id", actionID);
+                trans.Add("name", action);
+                var transTo = new Dictionary<String, String>();
+                transTo.Add("id", "10000");
+                transTo.Add("name", "Done");
+                trans.Add("to", transTo);
+                request.AddBody(new { transition = trans } );
 
                 var response = client.Execute(request);
                 AssertStatus(response, HttpStatusCode.NoContent);

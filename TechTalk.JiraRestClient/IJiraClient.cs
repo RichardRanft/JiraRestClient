@@ -22,7 +22,7 @@ namespace TechTalk.JiraRestClient
         /// <summary>Returns the worklogs for a specific issue</summary>
         Worklog GetWorklog(String issueKey, int startAt = 0, int queryCount = 20);
         /// <summary>Progresses the issue's workflow to the specified state.</summary>
-        Issue ProgressWorkflowAction(String issueKey, String action);
+        Issue ProgressWorkflowAction(String issueKey, String action, String actionID);
         /// <summary>Enumerates through all issues for the given project</summary>
         IEnumerable<Issue<TIssueFields>> EnumerateIssues(String projectKey);
         /// <summary>Enumerates through all issues of the specified type for the given project</summary>
