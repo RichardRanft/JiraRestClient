@@ -92,6 +92,7 @@ namespace TechTalk.JiraRestClient
             foreach (WorklogEntry entry in worklog.worklogs)
             {
                 var userData = new Dictionary<string, object>();
+                var updateUser = new Dictionary<string, object>();
                 var workData = new Dictionary<string, object>();
                 if (entry.timeSpent != null)
                     workData.Add("timeSpent", entry.timeSpent);
@@ -103,8 +104,17 @@ namespace TechTalk.JiraRestClient
                     userData.Add("active", entry.author.active);
                     workData.Add("author", userData);
                 }
+                if (entry.updateAuthor != null)
+                {
+                    if (entry.updateAuthor.name != null)
+                        updateUser.Add("name", entry.author.name);
+
+                    workData.Add("updateAuthor", updateUser);
+                }
                 if (entry.comment != null)
                     workData.Add("comment", entry.comment);
+                if (entry.started != null)
+                    workData.Add("started", entry.started);
                 try
                 {
                     var path = String.Format("issue/{0}/worklog", issueKey);
