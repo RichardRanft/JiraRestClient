@@ -274,6 +274,16 @@ namespace TechTalk.JiraRestClient
                 if (issueFields.labels != null)
                     issueData.Add("labels", issueFields.labels);
 
+                if (issueFields.priority != null)
+                {
+                    var priorityData = new Dictionary<string, object>();
+                    if (issueFields.priority.name != null)
+                    {
+                        priorityData.Add("name", issueFields.priority.name);
+                    }
+                    issueData.Add("priority", issueFields.priority);
+                }
+
                 var propertyList = typeof(TIssueFields).GetProperties().Where(p => p.Name.StartsWith("customfield_"));
                 foreach (var property in propertyList)
                 {
