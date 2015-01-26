@@ -75,7 +75,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <PropertyGroup>
-    <PostBuildEvent>e:\symbolserv\cssymbolstore.bat svn http://egm-dev.ad.agi/svn/EGMTools/trunk/JiraRestClient/TechTalk.JiraRestClient $(OutDir) $(SolutionDir) $(ProjectName) e:\pdbshare $(Configuration)</PostBuildEvent>
+    <PostBuildEvent>e:\symbolserv\cssymbolstore.bat svn http://egm-dev/svn/EGMTools/trunk/JiraRestClient/TechTalk.JiraRestClient $(OutDir) $(SolutionDir) $(ProjectName) e:\pdbshare $(Configuration)</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
