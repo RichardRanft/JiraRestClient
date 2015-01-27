@@ -27,6 +27,8 @@ namespace TechTalk.JiraRestClient
         IEnumerable<Issue<TIssueFields>> EnumerateIssues(String projectKey);
         /// <summary>Enumerates through all issues of the specified type for the given project</summary>
         IEnumerable<Issue<TIssueFields>> EnumerateIssues(String projectKey, String issueType);
+        /// <summary>Enumerates through all issues of the specified type for the given project</summary>
+        IEnumerable<Issue> GetIssuesQuery(Filter filter);
 
         /// <summary>Returns the issue identified by the given ref</summary>
         Issue<TIssueFields> LoadIssue(String issueRef);

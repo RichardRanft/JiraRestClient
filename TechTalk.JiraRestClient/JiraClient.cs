@@ -175,6 +175,11 @@ namespace TechTalk.JiraRestClient
             return EnumerateIssues(projectKey, issueType).ToArray();
         }
 
+        public IEnumerable<Issue> GetIssuesQuery(Filter filter)
+        {
+            return EnumerateIssuesQuery(filter).ToArray();
+        }
+
         public IEnumerable<Issue<TIssueFields>> EnumerateIssues(String projectKey)
         {
             return EnumerateIssues(projectKey, null);
@@ -189,6 +194,19 @@ namespace TechTalk.JiraRestClient
             catch (Exception ex)
             {
                 Trace.TraceError("EnumerateIssues(projectKey, issueType) error: {0}", ex);
+                throw new JiraClientException("Could not load issues", ex);
+            }
+        }
+
+        public IEnumerable<Issue> EnumerateIssuesQuery(Filter filter)
+        {
+            try
+            {
+                return EnumerateIssuesInternalQuery(filter);
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceError("EnumerateIssues(query) error: {0}", ex);
                 throw new JiraClientException("Could not load issues", ex);
             }
         }
@@ -219,6 +237,50 @@ namespace TechTalk.JiraRestClient
             }
         }
 
+        private IEnumerable<Issue> EnumerateIssuesInternalQuery(Filter filter)
+        {
+            var queryCount = 150;
+            var resultCount = 0;
+            while (true)
+            {
+                var path = String.Format("search?jql={0}&startAt={1}&maxResults={2}", filter.jql, resultCount, queryCount);
+                var request = CreateRequest(Method.GET, path);
+
+                var response = client.Execute(request);
+                AssertStatus(response, HttpStatusCode.OK);
+
+                var data = deserializer.Deserialize<IssueContainer<TIssueFields>>(response);
+                var issues = data.issues ?? Enumerable.Empty<Issue<TIssueFields>>();
+
+                foreach (var item in issues)
+                {
+                    Issue temp = new Issue();
+                    temp.key = item.key;
+                    temp.id = item.id;
+                    temp.fields = item.fields;
+                    yield return temp;
+                }
+                resultCount += issues.Count();
+
+                if (resultCount < data.total) continue;
+                else /* all issues received */ break;
+            }
+        }
+
+        private Filter GetFilter(Filter filter)
+        {
+            FilterFields fields = new FilterFields();
+            var jql = String.Format("filter?{0}", serializer.Serialize(fields));
+            var request = CreateRequest(Method.POST, jql);
+
+            var response = client.Execute(request);
+            AssertStatus(response, HttpStatusCode.OK);
+
+            var data = deserializer.Deserialize<Filter>(response);
+            filter.searchUrl = data.searchUrl;
+            
+            return filter;
+        }
 
         public Issue<TIssueFields> LoadIssue(IssueRef issueRef)
         {
