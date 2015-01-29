@@ -229,7 +229,7 @@ namespace TechTalk.JiraRestClient
                 var data = deserializer.Deserialize<IssueContainer<TIssueFields>>(response);
                 var issues = data.issues ?? Enumerable.Empty<Issue<TIssueFields>>();
 
-                foreach (var item in issues) yield return item;
+                foreach (var item in issues) yield return LoadIssue(item.key);
                 resultCount += issues.Count();
 
                 if (resultCount < data.total) continue;
@@ -243,7 +243,7 @@ namespace TechTalk.JiraRestClient
             var resultCount = 0;
             while (true)
             {
-                var path = String.Format("search?jql={0}&startAt={1}&maxResults={2}", filter.jql, resultCount, queryCount);
+                var path = String.Format("search?jql={0}&startAt={1}&maxResults={2}&fields&expand", filter.jql, resultCount, queryCount);
                 var request = CreateRequest(Method.GET, path);
 
                 var response = client.Execute(request);
@@ -257,7 +257,8 @@ namespace TechTalk.JiraRestClient
                     Issue temp = new Issue();
                     temp.key = item.key;
                     temp.id = item.id;
-                    temp.fields = item.fields;
+                    Issue<TIssueFields> fields = LoadIssue(item.key);
+                    temp.fields = fields.fields;
                     yield return temp;
                 }
                 resultCount += issues.Count();
