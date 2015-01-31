@@ -16,6 +16,7 @@ namespace TechTalk.JiraRestClient
         IEnumerable<Issue> GetIssues(String projectKey, String issueType);
         /// <summary>Returns all issues of the specified type for the given project</summary>
         Issue GetIssue(String issueKey);
+        EditMeta GetEditMeta(String issueKey);
         /// <summary>Returns the worklog count for a specific issue</summary>
         int GetWorklogCount(String issueKey);
         /// <summary>Adds worklogs to a specific issue</summary>
@@ -122,6 +123,11 @@ namespace TechTalk.JiraRestClient
         public Issue GetIssue(String issueKey)
         {
             return client.GetIssue(issueKey);
+        }
+
+        public EditMeta GetEditMeta(String issueKey)
+        {
+            return client.GetEditMeta(issueKey);
         }
 
         public int GetWorklogCount(String issueKey)

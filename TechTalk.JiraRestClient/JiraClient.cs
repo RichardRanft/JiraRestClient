@@ -8,6 +8,7 @@ using System.Text;
 using RestSharp;
 using RestSharp.Deserializers;
 using RestSharp.Serializers;
+using System.Text.RegularExpressions;
 
 namespace TechTalk.JiraRestClient
 {
@@ -73,6 +74,17 @@ namespace TechTalk.JiraRestClient
             var issueData = deserializer.Deserialize<Issue<IssueFields>>(response);
             Issue issue = Issue.From(issueData);
 
+            String[] respParts = response.Content.Split(',');
+            foreach (String part in respParts)
+            {
+                if(part.Contains("customfield_"))
+                {
+                    String[] pieces = part.Split(':');
+                    if (pieces[1] != "null")
+                        issue.fields.customfield.Add(new KeyValuePair<String, String>(pieces[0], pieces[1]));
+                }
+            }
+
             jql = String.Format("issue/{0}/worklog?search?&startAt={1}&maxResults={2}&fields&expand", Uri.EscapeUriString(issueKey), 0, 50);
             request = CreateRequest(Method.GET, jql);
             
@@ -83,6 +95,22 @@ namespace TechTalk.JiraRestClient
             issue.fields.worklog = workData;
 
             return issue;
+        }
+
+        public EditMeta GetEditMeta(String issueKey)
+        {
+            var jql = String.Format("issue/{0}/editmeta", issueKey);
+            var path = String.Format("{0}?&fields&expand", jql);
+            var request = CreateRequest(Method.GET, path);
+
+            var response = client.Execute(request);
+            AssertStatus(response, HttpStatusCode.OK);
+
+            var issueData = deserializer.Deserialize<EditMeta>(response);
+
+            issueData.GetCustomFields(response.Content);
+
+            return issueData;
         }
 
         public Worklog CreateWorklog(String issueKey, Worklog worklog)
@@ -305,6 +333,18 @@ namespace TechTalk.JiraRestClient
                 issue.fields.comments = GetComments(issue).ToList();
                 issue.fields.watchers = GetWatchers(issue).ToList();
                 Issue.ExpandLinks(issue);
+
+                String[] respParts = response.Content.Split(',');
+                foreach (String part in respParts)
+                {
+                    if (part.Contains("customfield_"))
+                    {
+                        String[] pieces = part.Split(':');
+                        if (pieces[1] != "null")
+                            issue.fields.customfield.Add(new KeyValuePair<String, String>(pieces[0], pieces[1]));
+                    }
+                }
+                
                 return issue;
             }
             catch (Exception ex)

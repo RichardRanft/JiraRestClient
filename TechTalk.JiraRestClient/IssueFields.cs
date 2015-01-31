@@ -18,6 +18,7 @@ namespace TechTalk.JiraRestClient
             attachment = new List<Attachment>();
             watchers = new List<JiraUser>();
             subtasks = new List<Issue>();
+            customfield = new List<KeyValuePair<String, String>>();
         }
 
         public String summary { get; set; }
@@ -36,5 +37,6 @@ namespace TechTalk.JiraRestClient
         public List<IssueLink> issuelinks { get; set; }
         public List<Attachment> attachment { get; set; }
         public List<Issue> subtasks { get; set; }
+        public List<KeyValuePair<String, String>> customfield { get; set; }
     }
 }

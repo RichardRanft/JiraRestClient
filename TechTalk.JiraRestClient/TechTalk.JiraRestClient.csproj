@@ -32,6 +32,7 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL" />
     <Reference Include="RestSharp">
       <HintPath>..\packages\RestSharp.104.1\lib\net4-client\RestSharp.dll</HintPath>
     </Reference>
@@ -41,9 +42,11 @@
   <ItemGroup>
     <Compile Include="Attachment.cs" />
     <Compile Include="Author.cs" />
+    <Compile Include="CJsonParser.cs" />
     <Compile Include="Comment.cs" />
     <Compile Include="CommentsContainer.cs" />
     <Compile Include="Compatibility.cs" />
+    <Compile Include="EditMeta.cs" />
     <Compile Include="Filter.cs" />
     <Compile Include="IssueType.cs" />
     <Compile Include="Priority.cs" />
