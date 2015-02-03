@@ -142,24 +142,6 @@ namespace TechTalk.JiraRestClient
             {
                 entry.Value.Add(value);
             }
-            ParserState exitState = m_currentState;
-            if (m_state.Count > 0)
-            {
-                m_currentState = m_state.Pop();
-                foreach (KeyValuePair<String, List<Object>> listEntry in exitState.Fields)
-                {
-                    KeyValuePair<String, List<Object>> temp = m_currentState.FindEntry(listEntry.Key);
-                    if(temp.Key == null || temp.Value == null)
-                        m_currentState.Fields.Add(listEntry);
-                    else
-                    {
-                        foreach(Object val in listEntry.Value)
-                        {
-                            temp.Value.Add(val);
-                        }
-                    }
-                }
-            }
         }
 
         private void enterObject(String key, Object value)
@@ -184,37 +166,16 @@ namespace TechTalk.JiraRestClient
                 entry.Value.Add(value);
             }
             ParserState exitState = m_currentState;
-            if (m_state.Count > 0)
-            {
-                m_currentState = m_state.Pop();
-                foreach (KeyValuePair<String, List<Object>> listEntry in exitState.Fields)
-                {
-                    KeyValuePair<String, List<Object>> temp = m_currentState.FindEntry(listEntry.Key);
-                    if (temp.Key == null || temp.Value == null)
-                        m_currentState.Fields.Add(listEntry);
-                    else
-                    {
-                        foreach (Object val in listEntry.Value)
-                        {
-                            temp.Value.Add(val);
-                        }
-                    }
-                }
-            }
+            m_currentState = m_state.Pop();
+            m_currentState.States.Add(exitState);
         }
 
         private void enterList(String key, Object value)
         {
             m_currentState.State = ParseState.INLIST;
-            if (key != "")
-            {
-                List<Object> valueList = new List<Object>();
-                valueList.Add(value);
-                KeyValuePair<String, List<Object>> entry = new KeyValuePair<String, List<Object>>(key, valueList);
-                m_currentState.Fields.Add(entry);
-            }
-            m_state.Push(m_currentState);
-            m_currentState = new ParserState(ParseState.INLIST, FieldState.NAME, m_currentState.TextMode, m_currentState.Type, key, value);
+            List<Object> valueList = new List<Object>();
+            KeyValuePair<String, List<Object>> entry = new KeyValuePair<string, List<object>>(key, valueList);
+            m_currentState.Fields.Add(entry);
         }
 
         private void leaveList(String key, Object value)
@@ -231,24 +192,6 @@ namespace TechTalk.JiraRestClient
             {
                 entry.Value.Add(value);
             }
-            ParserState exitState = m_currentState;
-            if (m_state.Count > 0)
-            {
-                m_currentState = m_state.Pop();
-                foreach (KeyValuePair<String, List<Object>> listEntry in exitState.Fields)
-                {
-                    KeyValuePair<String, List<Object>> temp = m_currentState.FindEntry(listEntry.Key);
-                    if (temp.Key == null || temp.Value == null)
-                        m_currentState.Fields.Add(listEntry);
-                    else
-                    {
-                        foreach (Object val in listEntry.Value)
-                        {
-                            temp.Value.Add(val);
-                        }
-                    }
-                }
-            }
         }
     }
 
@@ -259,6 +202,7 @@ namespace TechTalk.JiraRestClient
         public bool TextMode { get; set; }
         public ObjectType Type { get; set; }
         public List<KeyValuePair<String, List<Object>>> Fields { get; set; }
+        public List<ParserState> States { get; set; }
 
         public ParserState()
         {
@@ -267,6 +211,7 @@ namespace TechTalk.JiraRestClient
             TextMode = false;
             Type = ObjectType.STRING;
             Fields = new List<KeyValuePair<String, List<Object>>>();
+            States = new List<ParserState>();
         }
 
         public ParserState(ParseState state, FieldState fpos, bool fmode, ObjectType type, String key, Object value)
@@ -276,7 +221,8 @@ namespace TechTalk.JiraRestClient
             TextMode = fmode;
             Type = type;
             Fields = new List<KeyValuePair<String, List<Object>>>();
-            if(key != "" && value != null)
+            States = new List<ParserState>();
+            if (key != "" && value != null)
             {
                 List<Object> valueList = new List<Object>();
                 valueList.Add(value);
