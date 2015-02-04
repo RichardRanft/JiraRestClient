@@ -11,6 +11,9 @@ namespace TechTalk.JiraRestClient
     {
         private Stack<ParserState> m_state;
         private ParserState m_currentState;
+        private String m_objkey = "";
+        private String m_objfield = "";
+        private Object m_objvalue = null;
 
         public CParser()
         {
@@ -23,9 +26,9 @@ namespace TechTalk.JiraRestClient
         public ParserState Parse(String objText)
         {
             char[] jsonChars = objText.ToCharArray();
-            String objkey = "";
-            String objfield = "";
-            Object objvalue = null;
+            m_objkey = "";
+            m_objfield = "";
+            m_objvalue = null;
             int index = 0;
             foreach (char ch in jsonChars)
             {
@@ -46,38 +49,39 @@ namespace TechTalk.JiraRestClient
                             m_currentState.Type = ObjectType.LIST;
                     }
                     //enterData(objkey);
-                    objfield = "";
-                    objvalue = null;
+                    m_objfield = "";
+                    m_objvalue = null;
                     continue;
                 }
                 if (ch == '{')
                 {
                     // enter object
-                    enterObject(objkey, objfield);
-                    objkey = "";
-                    objfield = "";
-                    objvalue = null;
+                    enterObject(m_objkey, m_objfield);
+                    m_objkey = "";
                     continue;
                 }
                 if (ch == '}')
                 {
                     // exit object
-                    leaveObject(objkey, objfield);
+                    leaveObject(m_objkey, m_objfield);
+                    m_objkey = "";
+                    m_objfield = "";
+                    m_objvalue = null;
                     continue;
                 }
                 if (ch == '[')
                 {
                     // enter list
-                    enterList(objkey, objfield);
-                    objkey = "";
-                    objfield = "";
-                    objvalue = null;
+                    enterList(m_objkey, m_objfield);
                     continue;
                 }
                 if (ch == ']')
                 {
                     // exit list
-                    leaveList(objkey, objfield);
+                    leaveList(m_objkey, m_objfield);
+                    m_objkey = "";
+                    m_objfield = "";
+                    m_objvalue = null;
                     continue;
                 }
                 if (ch == ',')
@@ -88,18 +92,18 @@ namespace TechTalk.JiraRestClient
                         switch (m_currentState.FieldPos)
                         {
                             case FieldState.NAME:
-                                objkey += ch;
+                                m_objkey += ch;
                                 break;
                             case FieldState.DATA:
-                                objfield += ch;
+                                m_objfield += ch;
                                 break;
                         }
                         continue;
                     }
-                    leaveField(objkey, objfield);
-                    objkey = "";
-                    objfield = "";
-                    objvalue = null;
+                    leaveField(m_objkey, m_objfield);
+                    m_objkey = "";
+                    m_objfield = "";
+                    m_objvalue = null;
                     continue;
                 }
                 if(ch == '"')
@@ -111,10 +115,10 @@ namespace TechTalk.JiraRestClient
                 switch (m_currentState.FieldPos)
                 {
                     case FieldState.NAME:
-                        objkey += ch;
+                        m_objkey += ch;
                         break;
                     case FieldState.DATA:
-                        objfield += ch;
+                        m_objfield += ch;
                         break;
                 }
             }
@@ -125,6 +129,7 @@ namespace TechTalk.JiraRestClient
         {
             List<Object> valueList = new List<Object>();
             KeyValuePair<String, List<Object>> entry = new KeyValuePair<string,List<object>>(key, valueList);
+            m_currentState.FieldPos = FieldState.NAME;
             m_currentState.Fields.Add(entry);
         }
 
@@ -134,19 +139,34 @@ namespace TechTalk.JiraRestClient
             if (entry.Value == null)
             {
                 List<Object> valueList = new List<Object>();
-                valueList.Add(value);
+                if(value != null && (String)value != "")
+                    valueList.Add(value);
                 entry = new KeyValuePair<String, List<Object>>(key, valueList);
                 m_currentState.Fields.Add(entry);
             }
             else
             {
-                entry.Value.Add(value);
+                if (value != null && (String)value != "") 
+                    entry.Value.Add(value);
             }
         }
 
         private void enterObject(String key, Object value)
         {
-            m_currentState.State = ParseState.INOBJECT;
+            KeyValuePair<String, List<Object>> entry = m_currentState.FindEntry(key);
+            if (entry.Value == null)
+            {
+                List<Object> valueList = new List<Object>();
+                if (value != null && (String)value != "")
+                    valueList.Add(value);
+                entry = new KeyValuePair<String, List<Object>>(key, valueList);
+                m_currentState.Fields.Add(entry);
+            }
+            else
+            {
+                if (value != null && (String)value != "")
+                    entry.Value.Add(value);
+            }
             m_state.Push(m_currentState);
             m_currentState = new ParserState(ParseState.INOBJECT, FieldState.NAME, m_currentState.TextMode, m_currentState.Type, key, value);
         }
@@ -157,13 +177,15 @@ namespace TechTalk.JiraRestClient
             if (entry.Value == null)
             {
                 List<Object> valueList = new List<Object>();
-                valueList.Add(value);
+                if (value != null && (String)value != "")
+                    valueList.Add(value);
                 entry = new KeyValuePair<String, List<Object>>(key, valueList);
                 m_currentState.Fields.Add(entry);
             }
             else
             {
-                entry.Value.Add(value);
+                if (value != null && (String)value != "")
+                    entry.Value.Add(value);
             }
             ParserState exitState = m_currentState;
             m_currentState = m_state.Pop();
@@ -184,13 +206,15 @@ namespace TechTalk.JiraRestClient
             if (entry.Value == null)
             {
                 List<Object> valueList = new List<Object>();
-                valueList.Add(value);
+                if (value != null && (String)value != "") 
+                    valueList.Add(value);
                 entry = new KeyValuePair<String, List<Object>>(key, valueList);
                 m_currentState.Fields.Add(entry);
             }
             else
             {
-                entry.Value.Add(value);
+                if (value != null && (String)value != "") 
+                    entry.Value.Add(value);
             }
         }
     }
@@ -225,7 +249,8 @@ namespace TechTalk.JiraRestClient
             if (key != "" && value != null)
             {
                 List<Object> valueList = new List<Object>();
-                valueList.Add(value);
+                if (value != null && (String)value != "") 
+                    valueList.Add(value);
                 KeyValuePair<String, List<Object>> entry = new KeyValuePair<string, List<object>>(key, valueList);
             }
         }
