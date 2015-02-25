@@ -18,6 +18,7 @@ namespace TechTalk.JiraRestClient
             attachment = new List<Attachment>();
             watchers = new List<JiraUser>();
             subtasks = new List<Issue>();
+            changelog = new ChangeLog();
             customfield = new List<KeyValuePair<String, String>>();
         }
 
@@ -30,6 +31,7 @@ namespace TechTalk.JiraRestClient
 
         public JiraUser reporter { get; set; }
         public JiraUser assignee { get; set; }
+        public ChangeLog changelog { get; set; }
         public List<JiraUser> watchers { get; set; } 
 
         public List<String> labels { get; set; }

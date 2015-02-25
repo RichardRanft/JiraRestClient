@@ -97,6 +97,20 @@ namespace TechTalk.JiraRestClient
             return issue;
         }
 
+        public ChangeLog GetIssueChangelog(String issueKey)
+        {
+            var jql = String.Format("issue/{0}", issueKey);
+            var path = String.Format("{0}?search?&startAt={1}&maxResults={2}&fields=-renderedFields,-names,-schema,-transitions,-operations,-editmeta,changelog&expand=changelog", jql, 0, 50);
+            var request = CreateRequest(Method.GET, path);
+
+            var response = client.Execute(request);
+            AssertStatus(response, HttpStatusCode.OK);
+
+            var issueData = deserializer.Deserialize<Issue<IssueFields>>(response);
+
+            return issueData.fields.changelog;
+        }
+
         public EditMeta GetEditMeta(String issueKey)
         {
             var jql = String.Format("issue/{0}/editmeta", issueKey);

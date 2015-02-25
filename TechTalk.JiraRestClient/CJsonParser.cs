@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
+using System.Runtime.Serialization.Json;
+using System.Xml;
 
 namespace TechTalk.JiraRestClient
 {
@@ -11,117 +13,23 @@ namespace TechTalk.JiraRestClient
     {
         private Stack<ParserState> m_state;
         private ParserState m_currentState;
-        private String m_objkey = "";
-        private String m_objfield = "";
-        private Object m_objvalue = null;
+        //private String m_objkey = "";
+        //private String m_objfield = "";
+        //private Object m_objvalue = null;
 
         public CParser()
         {
             m_currentState = new ParserState();
-
             m_state = new Stack<ParserState>();
             m_state.Push(m_currentState);
         }
 
         public ParserState Parse(String objText)
         {
-            char[] jsonChars = objText.ToCharArray();
-            m_objkey = "";
-            m_objfield = "";
-            m_objvalue = null;
-            int index = 0;
-            foreach (char ch in jsonChars)
-            {
-                index++;
-                if(ch == ':')
-                {
-                    // enter field data
-                    m_currentState.FieldPos = FieldState.DATA;
-                    if(index >= 0 && index < jsonChars.Length)
-                    {
-                        char tmpCh = jsonChars[index];
-                        m_currentState.Type = ObjectType.RAW;
-                        if (tmpCh == '"')
-                            m_currentState.Type = ObjectType.STRING;
-                        if (tmpCh == '{')
-                            m_currentState.Type = ObjectType.OBJECT;
-                        if (tmpCh == '[')
-                            m_currentState.Type = ObjectType.LIST;
-                    }
-                    //enterData(objkey);
-                    m_objfield = "";
-                    m_objvalue = null;
-                    continue;
-                }
-                if (ch == '{')
-                {
-                    // enter object
-                    enterObject(m_objkey, m_objfield);
-                    m_objkey = "";
-                    continue;
-                }
-                if (ch == '}')
-                {
-                    // exit object
-                    leaveObject(m_objkey, m_objfield);
-                    m_objkey = "";
-                    m_objfield = "";
-                    m_objvalue = null;
-                    continue;
-                }
-                if (ch == '[')
-                {
-                    // enter list
-                    enterList(m_objkey, m_objfield);
-                    continue;
-                }
-                if (ch == ']')
-                {
-                    // exit list
-                    leaveList(m_objkey, m_objfield);
-                    m_objkey = "";
-                    m_objfield = "";
-                    m_objvalue = null;
-                    continue;
-                }
-                if (ch == ',')
-                {
-                    // exit current field
-                    if(m_currentState.TextMode)
-                    {
-                        switch (m_currentState.FieldPos)
-                        {
-                            case FieldState.NAME:
-                                m_objkey += ch;
-                                break;
-                            case FieldState.DATA:
-                                m_objfield += ch;
-                                break;
-                        }
-                        continue;
-                    }
-                    leaveField(m_objkey, m_objfield);
-                    m_objkey = "";
-                    m_objfield = "";
-                    m_objvalue = null;
-                    continue;
-                }
-                if(ch == '"')
-                {
-                    m_currentState.TextMode = !m_currentState.TextMode;
-                }
-
-                // collect characters
-                switch (m_currentState.FieldPos)
-                {
-                    case FieldState.NAME:
-                        m_objkey += ch;
-                        break;
-                    case FieldState.DATA:
-                        m_objfield += ch;
-                        break;
-                }
-            }
+            byte[] jsonChars = Encoding.ASCII.GetBytes(objText);
+            XmlDictionaryReaderQuotas quotas = XmlDictionaryReaderQuotas.Max;
+            XmlDictionaryReader xmlReader = JsonReaderWriterFactory.CreateJsonReader(jsonChars, quotas);
+            //xmlReader.
             return m_currentState;
         }
 
