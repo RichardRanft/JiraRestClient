@@ -100,15 +100,16 @@ namespace TechTalk.JiraRestClient
         public ChangeLog GetIssueChangelog(String issueKey)
         {
             var jql = String.Format("issue/{0}", issueKey);
-            var path = String.Format("{0}?search?&startAt={1}&maxResults={2}&fields=-renderedFields,-names,-schema,-transitions,-operations,-editmeta,changelog&expand=changelog", jql, 0, 50);
+            var path = String.Format("{0}?search?&startAt={1}&maxResults={2}&expand=changelog&fields=\"\"", jql, 0, 50);
             var request = CreateRequest(Method.GET, path);
 
             var response = client.Execute(request);
             AssertStatus(response, HttpStatusCode.OK);
+            CParser parser = new CParser();
+            response.Content = parser.StripChangelog(response.Content);
+            var issueData = deserializer.Deserialize<ChangeLog>(response);
 
-            var issueData = deserializer.Deserialize<Issue<IssueFields>>(response);
-
-            return issueData.fields.changelog;
+            return issueData;
         }
 
         public EditMeta GetEditMeta(String issueKey)

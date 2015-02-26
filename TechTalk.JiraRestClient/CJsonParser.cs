@@ -24,6 +24,22 @@ namespace TechTalk.JiraRestClient
             m_state.Push(m_currentState);
         }
 
+        public String StripChangelog(String objText)
+        {
+            int openBraceCount = 0;
+            for(int i = 0; i < objText.Length; i++)
+            {
+                if (objText[i] == '{')
+                    openBraceCount++;
+                if(openBraceCount > 1)
+                {
+                    int strlen = objText.Length - i - 1;
+                    return objText.Substring(i, strlen);
+                }
+            }
+            return objText;
+        }
+
         public ParserState Parse(String objText)
         {
             byte[] jsonChars = Encoding.ASCII.GetBytes(objText);

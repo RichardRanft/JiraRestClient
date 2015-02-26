@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace TechTalk.JiraRestClient
@@ -23,6 +22,7 @@ namespace TechTalk.JiraRestClient
         public Histories()
         {
             items = new List<HistoryItems>();
+            author = new Author();
         }
 
         public string id { get; set; }
