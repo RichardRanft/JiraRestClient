@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -461,7 +463,7 @@ namespace TechTalk.JiraRestClient
                 trans.Add("name", action);
                 var transTo = new Dictionary<String, String>();
                 transTo.Add("id", "10000");
-                transTo.Add("name", "Done");
+                transTo.Add("name", "Fixed/Resolved");
                 trans.Add("to", transTo);
                 request.AddBody(new { transition = trans } );
 
@@ -475,6 +477,81 @@ namespace TechTalk.JiraRestClient
                 Trace.TraceError("ProgressWorkflowAction(issueKey, action, actionID) error: {0}", ex);
                 throw new JiraClientException("Could not update issue", ex);
             }
+        }
+
+        public Issue ProgressWorkflowAction(String issueKey, String action, String actionID, String resolution)
+        {
+            var request = CreateRequest(Method.POST, "");
+            String responseMsg = "";
+            try
+            {
+                var path = String.Format("issue/{0}/transitions", issueKey);
+                request = CreateRequest(Method.POST, path);
+                request.AddHeader("ContentType", "application/json");
+                var trans = new Dictionary<String, object>();
+                trans.Add("id", actionID);
+                trans.Add("name", action);
+                var transTo = new Dictionary<String, String>();
+                transTo.Add("id", "10000");
+                transTo.Add("name", "Fixed/Resolved");
+                trans.Add("to", transTo);
+                request.AddBody(new { transition = trans });
+
+                var response = client.Execute(request);
+                responseMsg = response.ErrorMessage;
+                AssertStatus(response, HttpStatusCode.NoContent);
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceError("ProgressWorkflowAction(issueKey, action, actionID, resolution) error: {0}", ex);
+                if (responseMsg == null)
+                    responseMsg = "";
+                String parameters = Environment.NewLine + responseMsg + Environment.NewLine;
+                foreach(Parameter parm in request.Parameters)
+                    parameters += "{" + parm.Name + ":" + parm.Value + "}";
+                throw new JiraClientException("Could not update issue : " + parameters, ex);
+            }
+            try
+            {
+                var path = String.Format("issue/{0}", issueKey);
+                request = CreateRequest(Method.PUT, path);
+                request.AddHeader("ContentType", "application/json");
+
+                var resData = new Dictionary<string, object>();
+                
+                var updateData = new Dictionary<string, object>();
+                var commBody = new Dictionary<string, string>();
+                commBody.Add("body", "Issue is fixed.");
+                updateData.Add("comment", new[] { new { add = commBody } });
+                
+                resData.Add("update", updateData);
+                
+                var fields = new Dictionary<string, object>();
+                var res = new Dictionary<string, string>();
+                res.Add("id", "10000");
+                res.Add("name", resolution);
+                fields.Add("resolution", res);
+                
+                resData.Add("fields", fields);
+                
+                request.AddBody(resData);
+
+                var response = client.Execute(request);
+                responseMsg = response.ErrorMessage;
+                AssertStatus(response, HttpStatusCode.NoContent);
+            }
+            catch(Exception ex)
+            {
+                Trace.TraceError("ProgressWorkflowAction(issueKey, action, actionID, resolution) error: {0}", ex);
+                if (responseMsg == null)
+                    responseMsg = "";
+                String parameters = Environment.NewLine + responseMsg + Environment.NewLine;
+                foreach (Parameter parm in request.Parameters)
+                    parameters += "{" + parm.Name + ":" + parm.Value + "}";
+                throw new JiraClientException("Could not update issue : " + parameters, ex);
+            }
+
+            return GetIssue(issueKey);
         }
 
         public Issue<TIssueFields> UpdateIssue(Issue<TIssueFields> issue)

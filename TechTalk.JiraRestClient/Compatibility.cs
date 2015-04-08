@@ -156,6 +156,11 @@ namespace TechTalk.JiraRestClient
             return client.ProgressWorkflowAction(issueKey, action, actionID);
         }
 
+        public Issue ProgressWorkflowAction(String issueKey, String action, String actionID, String resolution)
+        {
+            return client.ProgressWorkflowAction(issueKey, action, actionID, resolution);
+        }
+
         public IEnumerable<Issue> EnumerateIssues(String projectKey)
         {
             return client.EnumerateIssues(projectKey).Select(Issue.From);
