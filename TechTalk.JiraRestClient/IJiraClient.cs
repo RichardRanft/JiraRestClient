@@ -27,6 +27,8 @@ namespace TechTalk.JiraRestClient
         Issue ProgressWorkflowAction(String issueKey, String action, String actionID);
         /// <summary>Progresses the issue's workflow to the specified state.</summary>
         Issue ProgressWorkflowAction(String issueKey, String action, String actionID, String resolution);
+        /// <summary>Returns all issues of the given type and the given project filtered by the given JQL query</summary>
+        IEnumerable<Issue<TIssueFields>> GetIssuesByQuery(String projectKey, String issueType, String jqlQuery);
         /// <summary>Enumerates through all issues for the given project</summary>
         IEnumerable<Issue<TIssueFields>> EnumerateIssues(String projectKey);
         /// <summary>Enumerates through all issues of the specified type for the given project</summary>

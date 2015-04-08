@@ -26,6 +26,8 @@ namespace TechTalk.JiraRestClient
         Worklog GetWorklog(String issueKey, int startAt = 0, int queryCount = 20);
         /// <summary>Progresses the issue's workflow to the specified state.</summary>
         Issue ProgressWorkflowAction(String issueKey, String action, String actionID);
+        /// <summary>Returns all issues of the given type and the given project filtered by the given JQL query</summary>
+        IEnumerable<Issue> GetIssuesByQuery(String projectKey, String issueType, String jqlQuery);
         /// <summary>Enumerates through all issues for the given project</summary>
         IEnumerable<Issue> EnumerateIssues(String projectKey);
         /// <summary>Enumerates through all issues of the specified type for the given project</summary>
@@ -46,7 +48,7 @@ namespace TechTalk.JiraRestClient
         /// <summary>Deletes the given issue from the remote system</summary>
         void DeleteIssue(IssueRef issue);
 
-        /// <summary>Returns all transitions avilable to the given issue</summary>
+        /// <summary>Returns all transitions available to the given issue</summary>
         IEnumerable<Transition> GetTransitions(IssueRef issue);
         /// <summary>Changes the state of the given issue as described by the transition</summary>
         Issue TransitionIssue(IssueRef issue, Transition transition);
@@ -159,6 +161,11 @@ namespace TechTalk.JiraRestClient
         public Issue ProgressWorkflowAction(String issueKey, String action, String actionID, String resolution)
         {
             return client.ProgressWorkflowAction(issueKey, action, actionID, resolution);
+        }
+
+        public IEnumerable<Issue> GetIssuesByQuery(string projectKey, string issueType, string jqlQuery)
+        {
+            return client.GetIssuesByQuery(projectKey, issueType, jqlQuery).Select(Issue.From).ToArray();
         }
 
         public IEnumerable<Issue> EnumerateIssues(String projectKey)
