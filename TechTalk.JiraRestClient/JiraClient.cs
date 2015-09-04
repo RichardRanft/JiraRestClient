@@ -396,6 +396,7 @@ namespace TechTalk.JiraRestClient
 
         public Issue<TIssueFields> CreateIssue(String projectKey, String issueType, TIssueFields issueFields)
         {
+            IRestResponse response = null;
             try
             {
                 var request = CreateRequest(Method.POST, "issue");
@@ -409,7 +410,7 @@ namespace TechTalk.JiraRestClient
                     issueData.Add("summary", issueFields.summary);
                 if (issueFields.description != null)
                     issueData.Add("description", issueFields.description);
-                if (issueFields.labels != null)
+                if (issueFields.labels != null && issueFields.labels.Count > 0)
                     issueData.Add("labels", issueFields.labels);
 
                 if (issueFields.priority != null)
@@ -431,7 +432,7 @@ namespace TechTalk.JiraRestClient
 
                 request.AddBody(new { fields = issueData });
 
-                var response = ExecuteRequest(request);
+                response = ExecuteRequest(request);
                 AssertStatus(response, HttpStatusCode.Created);
 
                 var issueRef = deserializer.Deserialize<IssueRef>(response);
@@ -440,7 +441,10 @@ namespace TechTalk.JiraRestClient
             catch (Exception ex)
             {
                 Trace.TraceError("CreateIssue(projectKey, issueType, issueFields) error: {0}", ex);
-                throw new JiraClientException("Could not create issue", ex);
+                String resp = "";
+                if (response != null)
+                    resp = response.Content;
+                throw new JiraClientException("Could not create issue:" + resp, ex);
             }
         }
 
@@ -471,21 +475,23 @@ namespace TechTalk.JiraRestClient
 
         public Issue ProgressWorkflowAction(String issueKey, String action, String actionID)
         {
+            var request = CreateRequest(Method.POST, "");
+            String responseMsg = "";
             try
             {
                 var path = String.Format("issue/{0}/transitions", issueKey);
-                var request = CreateRequest(Method.POST, path);
+                request = CreateRequest(Method.POST, path);
                 request.AddHeader("ContentType", "application/json");
                 var trans = new Dictionary<String, object>();
                 trans.Add("id", actionID);
                 trans.Add("name", action);
                 var transTo = new Dictionary<String, String>();
-                transTo.Add("id", "10000");
-                transTo.Add("name", "Fixed/Resolved");
+                transTo.Add("name", "Fixed");
                 trans.Add("to", transTo);
                 request.AddBody(new { transition = trans } );
 
                 var response = client.Execute(request);
+                responseMsg = response.ErrorMessage;
                 AssertStatus(response, HttpStatusCode.NoContent);
 
                 return GetIssue(issueKey);
@@ -493,7 +499,12 @@ namespace TechTalk.JiraRestClient
             catch (Exception ex)
             {
                 Trace.TraceError("ProgressWorkflowAction(issueKey, action, actionID) error: {0}", ex);
-                throw new JiraClientException("Could not update issue", ex);
+                if (responseMsg == null)
+                    responseMsg = "";
+                String parameters = Environment.NewLine + responseMsg + Environment.NewLine;
+                foreach (Parameter parm in request.Parameters)
+                    parameters += "{" + parm.Name + ":" + parm.Value + "}";
+                throw new JiraClientException("Could not update issue : " + parameters, ex);
             }
         }
 
@@ -510,8 +521,7 @@ namespace TechTalk.JiraRestClient
                 trans.Add("id", actionID);
                 trans.Add("name", action);
                 var transTo = new Dictionary<String, String>();
-                transTo.Add("id", "10000");
-                transTo.Add("name", "Fixed/Resolved");
+                transTo.Add("name", resolution);
                 trans.Add("to", transTo);
                 request.AddBody(new { transition = trans });
 
@@ -536,22 +546,16 @@ namespace TechTalk.JiraRestClient
                 request.AddHeader("ContentType", "application/json");
 
                 var resData = new Dictionary<string, object>();
-                
+
                 var updateData = new Dictionary<string, object>();
+
                 var commBody = new Dictionary<string, string>();
                 commBody.Add("body", "Issue is fixed.");
+
                 updateData.Add("comment", new[] { new { add = commBody } });
-                
+
                 resData.Add("update", updateData);
-                
-                var fields = new Dictionary<string, object>();
-                var res = new Dictionary<string, string>();
-                res.Add("id", "10000");
-                res.Add("name", resolution);
-                fields.Add("resolution", res);
-                
-                resData.Add("fields", fields);
-                
+
                 request.AddBody(resData);
 
                 var response = client.Execute(request);
