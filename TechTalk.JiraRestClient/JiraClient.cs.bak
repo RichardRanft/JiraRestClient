@@ -412,8 +412,6 @@ namespace TechTalk.JiraRestClient
                     issueData.Add("description", issueFields.description);
                 if (issueFields.labels != null && issueFields.labels.Count > 0)
                     issueData.Add("labels", issueFields.labels);
-                if (issueFields.watchers.Count > 0)
-                    issueData.Add("watchers", issueFields.watchers);
 
                 if (issueFields.priority != null)
                 {
@@ -591,12 +589,10 @@ namespace TechTalk.JiraRestClient
                     updateData.Add("summary", new[] { new { set = issue.fields.summary } });
                 if (issue.fields.description != null)
                     updateData.Add("description", new[] { new { set = issue.fields.description } });
-                if (issue.fields.labels != null && issue.fields.labels.Count > 0)
+                if (issue.fields.labels != null)
                     updateData.Add("labels", new[] { new { set = issue.fields.labels } });
-                if (issue.fields.timetracking != null && issue.fields.timetracking.originalEstimate != null)
+                if (issue.fields.timetracking != null)
                     updateData.Add("timetracking", new[] { new { set = new { originalEstimate = issue.fields.timetracking.originalEstimate } } });
-                if (issue.fields.reporter != null)
-                    updateData.Add("reporter", new[] { new { set = issue.fields.reporter } });
 
                 var propertyList = typeof(TIssueFields).GetProperties().Where(p => p.Name.StartsWith("customfield_"));
                 foreach (var property in propertyList)
@@ -1017,53 +1013,6 @@ namespace TechTalk.JiraRestClient
             {
                 Trace.TraceError("GetServerInfo() error: {0}", ex);
                 throw new JiraClientException("Could not retrieve server information", ex);
-            }
-        }
-
-        public JiraUser GetUser(String username)
-        {
-            try
-            {
-                var path = String.Format("/user?username={0}", username);
-                var request = CreateRequest(Method.GET, path);
-                request.AddHeader("ContentType", "application/json");
-
-                var response = ExecuteRequest(request);
-                AssertStatus(response, HttpStatusCode.OK);
-
-                return deserializer.Deserialize<JiraUser>(response);
-            }
-            catch (Exception ex)
-            {
-                Trace.TraceError("GetUser() error: {0}", ex);
-                throw new JiraClientException("Could not retrieve user information ", ex);
-            }
-        }
-
-        public void AddWatcher(String issueKey, String jiraUsername)
-        {
-            try
-            {
-                String url = baseApiUrl + "issue/" + issueKey + "/watchers";
-                var httpWebRequest = (HttpWebRequest)WebRequest.Create(url);
-                httpWebRequest.ContentType = "application/json";
-                httpWebRequest.Accept = "application/json";
-                httpWebRequest.Method = "POST";
-                httpWebRequest.Headers.Add("Authorization", "Basic " + Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(String.Format("{0}:{1}", username, password))));
-
-                String target = String.Format("\"{0}\"", jiraUsername);
-                byte[] data = System.Text.Encoding.ASCII.GetBytes(target.ToCharArray());
-
-                Stream stream = httpWebRequest.GetRequestStream();
-                stream.Write(data, 0, data.Length);
-                stream.Close();
-
-                httpWebRequest.GetResponse();
-            }
-            catch (Exception ex)
-            {
-                Trace.TraceError("AddWatcher() error: {0}", ex);
-                throw new JiraClientException("Could not add watcher ", ex);
             }
         }
     }

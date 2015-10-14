@@ -96,15 +96,5 @@ namespace TechTalk.JiraRestClient
 
         /// <summary>Returns information about the JIRA server</summary>
         ServerInfo GetServerInfo();
-
-        /// <summary>Returns information about the JIRA user</summary>
-        JiraUser GetUser(String username);
-
-        /// <summary>
-        /// Adds a watcher to an issue
-        /// </summary>
-        /// <param name="issueKey"></param>
-        /// <param name="username"></param>
-        void AddWatcher(String issueKey, String username);
     }
 }

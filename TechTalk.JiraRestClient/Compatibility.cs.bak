@@ -307,16 +307,6 @@ namespace TechTalk.JiraRestClient
         {
             return client.GetServerInfo();
         }
-
-        public JiraUser GetUser(String username)
-        {
-            return client.GetUser(username);
-        }
-
-        public void AddWatcher(String issueKey, String username)
-        {
-            client.AddWatcher(issueKey, username);
-        }
     }
 
     public class Issue : Issue<IssueFields>
