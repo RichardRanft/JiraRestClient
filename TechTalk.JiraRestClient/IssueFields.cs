@@ -11,7 +11,7 @@ namespace TechTalk.JiraRestClient
             priority = new Priority();
             timetracking = new Timetracking();
             worklog = new Worklog();
-
+            issuetype = new IssueType();
             labels = new List<String>();
             comments = new List<Comment>();
             issuelinks = new List<IssueLink>();
@@ -28,6 +28,7 @@ namespace TechTalk.JiraRestClient
         public Worklog worklog { get; set; }
         public Status status { get; set; }
         public Priority priority { get; set; }
+        public IssueType issuetype { get; set; }
 
         public JiraUser reporter { get; set; }
         public JiraUser assignee { get; set; }

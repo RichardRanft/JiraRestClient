@@ -303,6 +303,11 @@ namespace TechTalk.JiraRestClient
             return client.GetIssueTypes();
         }
 
+        public IssueType GetIssueType(String typeID)
+        {
+            return client.GetIssueType(typeID);
+        }
+
         public ServerInfo GetServerInfo()
         {
             return client.GetServerInfo();

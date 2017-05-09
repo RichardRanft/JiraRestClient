@@ -4,6 +4,9 @@ using System.IO;
 
 namespace TechTalk.JiraRestClient
 {
+    /* Summary
+       The IJiraClient interface handles all communication with the
+       consuming application.                                       */
     public interface IJiraClient<TIssueFields> where TIssueFields : IssueFields, new()
     {
         /// <summary>Returns all projects that the user can see</summary>
@@ -15,7 +18,31 @@ namespace TechTalk.JiraRestClient
         IEnumerable<Issue<TIssueFields>> GetIssues(String projectKey, String issueType);
         /// <summary>Returns a specific issue</summary>
         Issue GetIssue(String issueKey);
+        /* Summary
+           GetIssueChangelog() gets the data that is found in the
+           Transitions tab of an issue within JIRA.
+           
+           
+           Parameters
+           issueKey :  A string containing the issue key of the desired
+                       issue.
+           
+           Returns
+           \Returns a <link TechTalk.JiraRestClient.ChangeLog, ChangeLog>
+           object containing the history data for the requested issue.    */
         ChangeLog GetIssueChangelog(String issueKey);
+        /* Summary
+           This method gets the EditMeta object for the issue requested.
+           The fields in the editmeta correspond to the fields in the
+           edit screen for the issue. Fields not in the screen will not
+           be in the editemeta.
+           Parameters
+           issueKey :  The issue key for which we want to retrieve edit
+                       screen data.
+           
+           Returns
+           An <link TechTalk.JiraRestClient.EditMeta, EditMeta> object
+           with the data for the issue's edit screen.                    */
         EditMeta GetEditMeta(String issueKey);
         /// <summary>Returns the worklog count for a specific issue</summary>
         int GetWorklogCount(String issueKey);
@@ -93,6 +120,9 @@ namespace TechTalk.JiraRestClient
 
         /// <summary>Returns all issue types</summary>
         IEnumerable<IssueType> GetIssueTypes();
+
+        /// <summary>Returns the issue type of the requested issue</summary>
+        IssueType GetIssueType(String typeID);
 
         /// <summary>Returns information about the JIRA server</summary>
         ServerInfo GetServerInfo();

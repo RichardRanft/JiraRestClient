@@ -25,6 +25,30 @@ namespace TechTalk.JiraRestClient
         private readonly string baseApiUrl;
         private RestClient client;
 
+        /* Summary
+           The constructor takes three parameters and creates a JIRA
+           client object for interacting with a JIRA server.
+           Parameters
+           baseUrl :   The base URL of the server \-
+                       http\://myJiraServer.com\:2020/
+           username :  The user name to log in with
+           password :  The user's password
+           
+           Remarks
+           The base URL should have the trailing slash character as this
+           string is not altered and the internal handling of this path
+           does not add it for the consumer.
+           
+           The user account used to log in will need permission to add
+           and edit issues within the project that you intend to
+           interact with if you intend to add or update issues. Obviously,
+           the account will need read access to even retrieve issue
+           information.
+           C# Syntax
+           <c>   String address = "http://myJiraServer.com:2020/";</c>
+           <c>   String user = "JIRA_Automation";</c>
+           <c>   String password = "AutoPass88";</c>
+           <c>   JiraClient client = new JiraClient(address, user, password);</c> */
         public JiraClient(string baseUrl, string username, string password)
         {
             this.username = username;
@@ -58,6 +82,14 @@ namespace TechTalk.JiraRestClient
         }
 
 
+        /* Summary
+           Gets a list of all projects on the connected JIRA server.
+           
+           
+           Returns
+           A <link TechTalk.JiraRestClient.ProjectList, ProjectList>
+           object that contains a list of <link TechTalk.JiraRestClient.Project, Project>
+           data objects.                                                                  */
         public ProjectList GetProjects()
         {
             var jql = String.Format("project");
@@ -73,6 +105,14 @@ namespace TechTalk.JiraRestClient
             return list;
         }
 
+        /* Summary
+           Retrieve the issue with the specified key.
+           Parameters
+           issueKey :  The key of the issue to retrieve
+           
+           Returns
+           An <link TechTalk.JiraRestClient.Issue, Issue> object
+           corresponding to the specified key.                   */
         public Issue GetIssue(String issueKey)
         {
             var jql = String.Format("issue/{0}", Uri.EscapeUriString(issueKey));
@@ -108,6 +148,14 @@ namespace TechTalk.JiraRestClient
             return issue;
         }
 
+        /* Summary
+           Gets the issue transaction history from the History tab of
+           the specified JIRA issue.
+           Parameters
+           issueKey :  The issue key to retrieve change logs for
+           Returns
+           \Returns a <link TechTalk.JiraRestClient.ChangeLog, ChangeLog>
+           object with the issue's history.                               */
         public ChangeLog GetIssueChangelog(String issueKey)
         {
             var jql = String.Format("issue/{0}", issueKey);
@@ -123,6 +171,18 @@ namespace TechTalk.JiraRestClient
             return issueData;
         }
 
+        /* Summary
+           Gets the <link TechTalk.JiraRestClient.EditMeta, EditMeta>
+           data for the requested issue key. The <link TechTalk.JiraRestClient.EditMeta, EditMeta>
+           is form data for the screen - in this case the edit issue
+           screen - so it contains all available fields for the
+           requested screen.
+           Parameters
+           issueKey :  The issue key to retrieve data for
+           
+           Returns
+           The <link TechTalk.JiraRestClient.EditMeta, EditMeta> object
+           for the requested issue key.                                                            */
         public EditMeta GetEditMeta(String issueKey)
         {
             var jql = String.Format("issue/{0}/editmeta", issueKey);
@@ -139,6 +199,15 @@ namespace TechTalk.JiraRestClient
             return issueData;
         }
 
+        /* Summary
+           Creates a worklog entry and adds it to the requested issue.
+           Parameters
+           issueKey :  The key of the issue to add the worklog to
+           worklog :   The new worklog to add to the issue
+           
+           Returns
+           The newly created <link TechTalk.JiraRestClient.Worklog, Worklog>
+           object from JIRA.                                                 */
         public Worklog CreateWorklog(String issueKey, Worklog worklog)
         {
             IRestResponse response = null;
@@ -193,6 +262,14 @@ namespace TechTalk.JiraRestClient
             return responseLog;
         }
 
+        /* Summary
+           Gets the number of work log entries associated with the
+           specified key.
+           Parameters
+           issueKey :  The key of the issue to get the work log count for.
+           
+           Returns
+           The number of work log entries in the issue specified.          */
         public int GetWorklogCount(String issueKey)
         {
             var jql = String.Format("issue/{0}/worklog?search?&startAt={1}&maxResults={2}&fields&expand", Uri.EscapeUriString(issueKey), 0, 1);
@@ -206,6 +283,16 @@ namespace TechTalk.JiraRestClient
             return workData.total;
         }
 
+        /* Summary
+           Gets filled Worklog data for the specified issue key.
+           Parameters
+           issueKey :    The issue key to get data for
+           startAt :     The index to start the data collection from
+           queryCount :  The number of entries to retrieve
+           
+           Returns
+           A <link TechTalk.JiraRestClient.Worklog, Worklog> object
+           containing the time keeping data requested.               */
         public Worklog GetWorklog(String issueKey, int startAt = 0, int queryCount = 20)
         {
             var jql = String.Format("issue/{0}/worklog?search?&startAt={1}&maxResults={2}&fields&expand", Uri.EscapeUriString(issueKey), startAt, queryCount);
@@ -229,11 +316,43 @@ namespace TechTalk.JiraRestClient
             return EnumerateIssues(projectKey, issueType).ToArray();
         }
 
+        /* Summary
+           Gets all issues on the server that match the provided JQL
+           query.
+           Parameters
+           filter :  The search query
+           Returns
+           An IEnumerable\<<link TechTalk.JiraRestClient.Issue, Issue>\>
+           of all issues on the server matching the provided JQL query.
+           Remarks
+           JIRA uses a unique flavor of JQL that is Lucene-based - so
+           please refer to <extlink https://confluence.atlassian.com/jira/performing-text-searches-185729616.html>Performing
+           Text Searches</extlink> and <extlink https://confluence.atlassian.com/jira/advanced-searching-179442050.html>Advanced
+           Searching</extlink> in Atlassian's JIRA documentation if
+           you're not getting the results you expect.                                                                            */
         public IEnumerable<Issue> GetIssuesQuery(Filter filter)
         {
             return EnumerateIssuesQuery(filter).ToArray();
         }
 
+        /* Summary
+           \Returns a list of issues from the indicated project of the
+           requested type that match the provided JQL query.
+           Parameters
+           projectKey :  The project to search
+           issueType :   The desired issue type
+           jqlQuery :    A string containing the JQL query to use for
+                         the search
+           
+           Returns
+           A List\<Issue\<TIssueFields\>\> containing the issues found
+           using the provided query.
+           Remarks
+           JIRA uses a unique flavor of JQL that is Lucene-based - so
+           please refer to <extlink https://confluence.atlassian.com/jira/performing-text-searches-185729616.html>Performing
+           Text Searches</extlink> and <extlink https://confluence.atlassian.com/jira/advanced-searching-179442050.html>Advanced
+           Searching</extlink> in Atlassian's JIRA documentation if
+           you're not getting the results you expect.                                                                            */
         public IEnumerable<Issue<TIssueFields>> GetIssuesByQuery(string projectKey, string issueType, string jqlQuery)
         {
             return EnumerateIssuesInternal(projectKey, issueType, jqlQuery);
@@ -257,6 +376,20 @@ namespace TechTalk.JiraRestClient
             }
         }
 
+        /* Summary
+           Get a list of issues using a JQL query.
+           Parameters
+           filter :  A string containing a JQL query
+           
+           Returns
+           An IEnumerable\<<link TechTalk.JiraRestClient.Issue, Issue>\>
+           of issues that satisfy the query.
+           Remarks
+           JIRA uses a unique flavor of JQL that is Lucene-based - so
+           please refer to <extlink https://confluence.atlassian.com/jira/performing-text-searches-185729616.html>Performing
+           Text Searches</extlink> and <extlink https://confluence.atlassian.com/jira/advanced-searching-179442050.html>Advanced
+           Searching</extlink> in Atlassian's JIRA documentation if
+           you're not getting the results you expect.                                                                            */
         public IEnumerable<Issue> EnumerateIssuesQuery(Filter filter)
         {
             try
@@ -349,11 +482,34 @@ namespace TechTalk.JiraRestClient
             return filter;
         }
 
+        /* \ \ 
+           Summary
+           Gets additional information for an <link TechTalk.JiraRestClient.IssueRef, IssueRef>
+           of a retrieved JIRA issue.
+           
+           
+           Parameters
+           issueRef :  The IssueRef object to retrieve additional
+                       information for
+           
+           Returns
+           A new <link TechTalk.JiraRestClient.Issue, Issue> object with
+           additional data.                                                                     */
         public Issue<TIssueFields> LoadIssue(IssueRef issueRef)
         {
             return LoadIssue(issueRef.JiraIdentifier);
         }
 
+        /* \ \ 
+           Summary
+           Gets a more detailed view of the specified JIRA issue.
+           
+           
+           Parameters
+           issueRef :  The issue key to retrieve
+           
+           Returns
+           A filled <link TechTalk.JiraRestClient.Issue, Issue> object. */
         public Issue<TIssueFields> LoadIssue(String issueRef)
         {
             try
@@ -389,11 +545,33 @@ namespace TechTalk.JiraRestClient
             }
         }
 
+        /* Summary
+           Creates a new JIRA issue with only bare information.
+           Parameters
+           projectKey :  The key of the project within which to
+                         create the issue
+           issueType :   The issue type
+           summary\ :    \Summary text
+           
+           Returns
+           A new <link TechTalk.JiraRestClient.Issue, Issue> object from
+           the newly created JIRA issue.                                 */
         public Issue<TIssueFields> CreateIssue(String projectKey, String issueType, String summary)
         {
             return CreateIssue(projectKey, issueType, new TIssueFields { summary = summary });
         }
 
+        /* Summary
+           Takes a collection of IssueFields to create an issue in JIRA.
+           Parameters
+           projectKey :   The project key to create the issue in
+           issueType :    The type of issue to create
+           issueFields :  The <link TechTalk.JiraRestClient.IssueFields, IssueFields>
+                          collection with the issue data
+           
+           Returns
+           \Returns an <link TechTalk.JiraRestClient.Issue, Issue>
+           object representing the new issue.                                         */
         public Issue<TIssueFields> CreateIssue(String projectKey, String issueType, TIssueFields issueFields)
         {
             IRestResponse response = null;
@@ -450,6 +628,16 @@ namespace TechTalk.JiraRestClient
             }
         }
 
+        /* Summary
+           Creates a JIRA issue using a filled Issue object.
+           Parameters
+           projectKey :  _nt_ The key of the project within which to
+                         create the issue
+           issueType :   _nt_ The issue type
+           issue :       _nt_ An Issue object with its fields filled.
+           Returns
+           A new <link TechTalk.JiraRestClient.Issue, Issue> object
+           retrieved from the newly created JIRA issue.               */
         public Issue<TIssueFields> CreateIssue(String projectKey, String issueType, Issue issue)
         {
             IRestResponse response = null;
@@ -578,6 +766,17 @@ namespace TechTalk.JiraRestClient
             return GetIssue(issueKey);
         }
 
+        /* Summary
+           This method uses a source Issue object to update certain
+           fields on the Issue in JIRA. These fields are "summary",
+           "description", "labels", "timetracking", "reporter", and all
+           custom fields.
+           Parameters
+           issue :  The issue to update, containing the updated data
+           
+           Returns
+           The updated <link TechTalk.JiraRestClient.Issue, Issue>
+           object.                                                      */
         public Issue<TIssueFields> UpdateIssue(Issue<TIssueFields> issue)
         {
             try
@@ -619,6 +818,15 @@ namespace TechTalk.JiraRestClient
             }
         }
 
+        /* Summary
+           Deletes the issue from JIRA using the provided <link TechTalk.JiraRestClient.IssueRef, IssueRef>
+           object.
+           Parameters
+           issue :  The IssueRef representing the issue to delete
+           
+           Remarks
+           This method will also delete all subtasks of the deleted
+           issue.                                                                                           */
         public void DeleteIssue(IssueRef issue)
         {
             try
@@ -637,6 +845,17 @@ namespace TechTalk.JiraRestClient
         }
 
 
+        /* Summary
+           This gets a list of Transition objects for all of the issue's
+           state transitions. It takes a target <link TechTalk.JiraRestClient.IssueRef, IssueRef>
+           as a parameter.
+           Parameters
+           issue :  The target issue for which to retrieve transition
+                    information
+           
+           Returns
+           An IEnumerable\<<link TechTalk.JiraRestClient.Transition, Transition>\>
+           of all transition objects for the issue.                                               */
         public IEnumerable<Transition> GetTransitions(IssueRef issue)
         {
             try
@@ -657,6 +876,19 @@ namespace TechTalk.JiraRestClient
             }
         }
 
+        /* Summary
+           This method transitions the state of an issue. It takes an <link TechTalk.JiraRestClient.IssueRef, IssueRef>
+           and a <link TechTalk.JiraRestClient.Transition, Transition>
+           as its parameters.
+           
+           
+           Parameters
+           issue :       An IssueRef for the issue to modify
+           transition :  The Transition object for the target state
+           
+           Returns
+           The updated <link TechTalk.JiraRestClient.Issue, Issue>
+           object.                                                                                                      */
         public Issue<TIssueFields> TransitionIssue(IssueRef issue, Transition transition)
         {
             try
@@ -685,6 +917,15 @@ namespace TechTalk.JiraRestClient
         }
 
 
+        /* Summary
+           Gets a list of <link TechTalk.JiraRestClient.JiraUser, JiraUser>s
+           who are watching the specified <link TechTalk.JiraRestClient.IssueRef, IssueRef>.
+           Parameters
+           issue :  The IssueRef for which to retrieve watchers
+           
+           Returns
+           An IEnumerable\<<link TechTalk.JiraRestClient.JiraUser, JiraUser>\>
+           of watchers for the specified <link TechTalk.JiraRestClient.IssueRef, IssueRef>.  */
         public IEnumerable<JiraUser> GetWatchers(IssueRef issue)
         {
             try
@@ -705,6 +946,14 @@ namespace TechTalk.JiraRestClient
         }
 
 
+        /* Summary
+           Get all comments for the provided <link TechTalk.JiraRestClient.IssueRef, IssueRef>.
+           Parameters
+           issue :  The IssueRef for which to retrieve comments
+           
+           Returns
+           An IEnumerable\<<link TechTalk.JiraRestClient.Comment, Comment>\>
+           with all comments for the requested issue.                                           */
         public IEnumerable<Comment> GetComments(IssueRef issue)
         {
             try
@@ -725,6 +974,15 @@ namespace TechTalk.JiraRestClient
             }
         }
 
+        /* Summary
+           Adds a comment to the specified issue.
+           Parameters
+           issue :    The IssueRef for the issue to add the comment to
+           comment :  A string containing the text of the comment to add
+           
+           Returns
+           A newly created <link TechTalk.JiraRestClient.Comment, Comment>
+           object.                                                         */
         public Comment CreateComment(IssueRef issue, String comment)
         {
             try
@@ -746,6 +1004,12 @@ namespace TechTalk.JiraRestClient
             }
         }
 
+        /* Summary
+           Deletes a <link TechTalk.JiraRestClient.Comment, Comment>
+           from the provided <link TechTalk.JiraRestClient.IssueRef, IssueRef>.
+           Parameters
+           issue :    An IssueRef for the target issue in JIRA
+           comment :  The Comment object to remove                              */
         public void DeleteComment(IssueRef issue, Comment comment)
         {
             try
@@ -764,11 +1028,35 @@ namespace TechTalk.JiraRestClient
         }
 
 
+        /* Summary
+           Gets a list of Attachment objects for the specified <link TechTalk.JiraRestClient.IssueRef, IssueRef>.
+           Parameters
+           issue :  The IssueRef for which to retrieve Attachments
+           
+           Returns
+           An IEnumerable\<<link TechTalk.JiraRestClient.Attachment, Attachment>\>
+           for the requested <link TechTalk.JiraRestClient.IssueRef, IssueRef>.                                   */
         public IEnumerable<Attachment> GetAttachments(IssueRef issue)
         {
             return LoadIssue(issue).fields.attachment;
         }
 
+        /* Summary
+           Create an <link TechTalk.JiraRestClient.Attachment, Attachment>
+           for a specified <link TechTalk.JiraRestClient.IssueRef, IssueRef>.
+           Parameters
+           issue :       The IssueRef to attach the new Attachment to
+           fileStream :  A FileStream object for the attachment file
+           fileName :    The name of the file without path information
+           
+           Returns
+           A new <link TechTalk.JiraRestClient.Attachment, Attachment>
+           object.
+           Remarks
+           The provided file name must be a plain file name with
+           extension. If the full path to the source file is passed in
+           the view attachment link will not work in the issue view
+           through the JIRA site service.                                     */
         public Attachment CreateAttachment(IssueRef issue, Stream fileStream, String fileName)
         {
             try
@@ -791,6 +1079,11 @@ namespace TechTalk.JiraRestClient
             }
         }
 
+        /* Summary
+           Removes the requested <link TechTalk.JiraRestClient.Attachment, Attachment>
+           from JIRA.
+           Parameters
+           attachment :  The Attachment object to remove                               */
         public void DeleteAttachment(Attachment attachment)
         {
             try
@@ -809,11 +1102,35 @@ namespace TechTalk.JiraRestClient
         }
 
 
+        /* Summary
+           Gets a list of IssueLink objects associated with a JIRA
+           issue.
+           
+           
+           Parameters
+           issue :  An IssueRef object of the issue to retrieve links for
+           
+           Returns
+           An enumerable list of <link TechTalk.JiraRestClient.IssueLink, IssueLink>
+           objects.                                                                  */
         public IEnumerable<IssueLink> GetIssueLinks(IssueRef issue)
         {
             return LoadIssue(issue).fields.issuelinks;
         }
 
+        /* Summary
+           This method returns an existing issue link from a parent <link TechTalk.JiraRestClient.IssueRef, IssueRef>
+           to a child <link TechTalk.JiraRestClient.IssueRef, IssueRef>
+           with the specified relationship.
+           Parameters
+           parent :        An IssueRef for a parent issue
+           child :         An IssueRef for a child issue
+           relationship :  A string containing the name of the
+                           relationship between the two IssueRefs
+           
+           Returns
+           An <link TechTalk.JiraRestClient.IssueLink, IssueLink>
+           containing the data for the specified issue relationship.                                                  */
         public IssueLink LoadIssueLink(IssueRef parent, IssueRef child, String relationship)
         {
             try
@@ -836,6 +1153,17 @@ namespace TechTalk.JiraRestClient
             }
         }
 
+        /* Summary
+           Create an IssueLink between two IssueRef objects with the
+           specified relationship.
+           Parameters
+           parent :        The parent IssueRef
+           child :         The child IssueRef
+           relationship :  The desired relationship
+           
+           Returns
+           A new <link TechTalk.JiraRestClient.IssueLink, IssueLink>
+           object.                                                   */
         public IssueLink CreateIssueLink(IssueRef parent, IssueRef child, String relationship)
         {
             try
@@ -861,6 +1189,10 @@ namespace TechTalk.JiraRestClient
             }
         }
 
+        /* Summary
+           Deletes the specified <link TechTalk.JiraRestClient.IssueLink, IssueLink>.
+           Parameters
+           link :  The IssueLink to delete                                            */
         public void DeleteIssueLink(IssueLink link)
         {
             try
@@ -879,6 +1211,15 @@ namespace TechTalk.JiraRestClient
         }
 
 
+        /* Summary
+           Gets a list of all <link TechTalk.JiraRestClient.RemoteLink, RemoteLink>
+           objects for the specified <link TechTalk.JiraRestClient.IssueRef, IssueRef>.
+           Parameters
+           issue :  The IssueRef for which to retrieve links
+           
+           Returns
+           An IEnumerable\<<link TechTalk.JiraRestClient.RemoteLink, RemoteLink>\>
+           for the specified <link TechTalk.JiraRestClient.IssueRef, IssueRef>.         */
         public IEnumerable<RemoteLink> GetRemoteLinks(IssueRef issue)
         {
             try
@@ -900,6 +1241,16 @@ namespace TechTalk.JiraRestClient
             }
         }
 
+        /* Summary
+           Creates a new <link TechTalk.JiraRestClient.RemoteLink, RemoteLink>
+           in the specified <link TechTalk.JiraRestClient.IssueLink, IssueRef>.
+           Parameters
+           issue :       The IssueRef to add the link to
+           remoteLink :  The RemoteLink object to add
+           
+           Returns
+           The newly added <link TechTalk.JiraRestClient.RemoteLink, RemoteLink>
+           object.                                                               */
         public RemoteLink CreateRemoteLink(IssueRef issue, RemoteLink remoteLink)
         {
             try
@@ -936,6 +1287,18 @@ namespace TechTalk.JiraRestClient
             }
         }
 
+        /* Summary
+           Updates the contents of a remote link. Takes an <link TechTalk.JiraRestClient.IssueRef, IssueRef>
+           and a <link TechTalk.JiraRestClient.RemoteLink, RemoteLink>
+           as parameters.
+           Parameters
+           issue :       An IssueRef for the issue to be modified
+           remoteLink :  A RemoteLink object with the new values to be
+                         submitted
+           
+           Returns
+           An updated <link TechTalk.JiraRestClient.RemoteLink, RemoteLink>
+           object with the updated values.                                                                   */
         public RemoteLink UpdateRemoteLink(IssueRef issue, RemoteLink remoteLink)
         {
             try
@@ -962,6 +1325,13 @@ namespace TechTalk.JiraRestClient
             }
         }
 
+        /* Summary
+           Deletes the specified <link TechTalk.JiraRestClient.RemoteLink, RemoteLink>
+           from the provided <link TechTalk.JiraRestClient.IssueRef, IssueRef>.
+           Parameters
+           issue :       The IssueRef representing the issue to remove the
+                         link from
+           remoteLink :  The RemoteLink object to remove                               */
         public void DeleteRemoteLink(IssueRef issue, RemoteLink remoteLink)
         {
             try
@@ -980,6 +1350,13 @@ namespace TechTalk.JiraRestClient
             }
         }
 
+        /* Summary
+           Gets a list of all issue types from JIRA.
+           
+           
+           Returns
+           A List\<<link TechTalk.JiraRestClient.IssueType, IssueType>\>
+           of all issue types in JIRA.                                   */
         public IEnumerable<IssueType> GetIssueTypes()
         {
             try
@@ -1001,6 +1378,43 @@ namespace TechTalk.JiraRestClient
             }
         }
 
+        /* Summary
+           Gets an IssueType object matching the requested issue type.
+           
+           
+           Parameters
+           typeID :  The type id to retrieve
+           
+           Returns
+           An <link TechTalk.JiraRestClient.IssueType, IssueType> object
+           for the requested issue type.                                 */
+        public IssueType GetIssueType(String typeID)
+        {
+            try
+            {
+                String command = String.Format("issuetype/{0}", typeID);
+                var request = CreateRequest(Method.GET, command);
+                request.AddHeader("ContentType", "application/json");
+
+                var response = ExecuteRequest(request);
+                AssertStatus(response, HttpStatusCode.OK);
+
+                var data = deserializer.Deserialize<IssueType>(response);
+                return data;
+
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceError("GetIssueTypes() error: {0}", ex);
+                throw new JiraClientException("Could not load issue types", ex);
+            }
+        }
+
+        /* Summary
+           Retrieves server information.
+           Returns
+           A <link TechTalk.JiraRestClient.ServerInfo, ServerInfo>
+           object with some basic identification data.             */
         public ServerInfo GetServerInfo()
         {
             try
@@ -1020,6 +1434,14 @@ namespace TechTalk.JiraRestClient
             }
         }
 
+        /* Summary
+           Gets user data for the requested user name.
+           Parameters
+           username :  The JIRA username for which to retrieve data
+           
+           Returns
+           A <link TechTalk.JiraRestClient.JiraUser, JiraUser> object
+           with the requested user's data.                            */
         public JiraUser GetUser(String username)
         {
             try
@@ -1040,6 +1462,11 @@ namespace TechTalk.JiraRestClient
             }
         }
 
+        /* Summary
+           Adds a JIRA user as a watcher on the specified issue.
+           Parameters
+           issueKey :      The issue key to watch
+           jiraUsername :  The JIRA user name to add as a watcher */
         public void AddWatcher(String issueKey, String jiraUsername)
         {
             try
